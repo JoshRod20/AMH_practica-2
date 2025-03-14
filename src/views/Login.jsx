@@ -17,41 +17,41 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    const auth = getAuth(appfirebase);
+      e.preventDefault();
+      const auth = getAuth(appfirebase);
 
-    signInWithEmailAndPassword(auth, email, password)
+      signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
-        console.log("Usuario autenticado:", userCredential.user);
-        // Guardar las credenciales en localStorage
-        localStorage.setItem("adminEmail", email);
-        localStorage.setItem("adminPassword", password);
-        // Redirigir después de iniciar sesión
-        navigate("/inicio");
+          console.log("Usuario autenticado:", userCredential.user);
+          // Guardar las credenciales en localStorage
+          localStorage.setItem("adminEmail", email);
+          localStorage.setItem("adminPassword", password);
+          // Redirigir después de iniciar sesión
+          navigate("/inicio");
       })
       .catch((error) => {
-        setError("Error de autenticación. Verifica tus credenciales.");
-        console.error(error);
+          setError("Error de autenticación. Verifica tus credenciales.");
+          console.error(error);
       });
   };
 
   // Si el usuario ya está autenticado, redirigir automáticamente
   if (user) {
-    navigate("/inicio");
+      navigate("/inicio");
   }
 
   return (
-    <Container className="d-flex vh-100 justify-content-center align-items-center">
+      <Container className="d-flex vh-100 justify-content-center align-items-center">
       <LoginForm
-        email={email}
-        password={password}
-        error={error}
-        setEmail={setEmail}
-        setPassword={setPassword}
-        handleSubmit={handleSubmit}
+          email={email}
+          password={password}
+          error={error}
+          setEmail={setEmail}
+          setPassword={setPassword}
+          handleSubmit={handleSubmit}
       />
-    </Container>
+      </Container>
   );
-};
+  };
 
-export default Login;
+  export default Login;
