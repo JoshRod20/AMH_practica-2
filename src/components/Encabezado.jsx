@@ -88,6 +88,24 @@ import "../App.css";
                     ) : null}
                     <strong>Inicio</strong>
                 </Nav.Link>
+                <Nav.Link
+                    onClick={() => handleNavigate("/categorias")}
+                    className={isCollapsed ? "color-texto-marca" : "text-white"}
+                >
+                    {isCollapsed ? (
+                    <i className="bi-house-door-fill me-2"></i>
+                    ) : null}
+                    <strong>Categorías</strong>
+                </Nav.Link>
+                <Nav.Link
+                    onClick={() => handleNavigate("/productos")}
+                    className={isCollapsed ? "color-texto-marca" : "text-white"}
+                >
+                    {isCollapsed ? (
+                    <i className="bi-house-door-fill me-2"></i>
+                    ) : null}
+                    <strong>Productos</strong>
+                </Nav.Link>
                 {isLoggedIn ? (
                     <>
                     <Nav.Link
