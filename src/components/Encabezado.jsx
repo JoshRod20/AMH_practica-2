@@ -42,7 +42,7 @@ import "../App.css";
     };
 
     return (
-        <Navbar expand="sm" fixed="top" className="color-navbar">
+        <Navbar expand="md" fixed="top" className="color-navbar">
         <Container>
             <Navbar.Brand
             onClick={() => handleNavigate("/inicio")}
