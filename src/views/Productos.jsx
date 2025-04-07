@@ -15,6 +15,7 @@ import ModalRegistroProducto from "../components/productos/ModalRegistroProducto
   import ModalEdicionProducto from "../components/productos/ModalEdicionProducto";
 import ModalEliminacionProducto from "../components/productos/ModalEliminacionProducto";
 import CuadroBusquedas from "../components/busquedas/CuadroBusquedas";
+import Paginacion from "../components/ordenamiento/Paginacion";
 
 const Productos = () => {
   // Estados para manejo de datos
@@ -34,6 +35,10 @@ const Productos = () => {
 
   const [productosFiltrados, setProductosFiltrados] = useState([]);
   const [searchText, setSearchText] = useState("");
+
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // Número de productos por página
 
   // Referencia a las colecciones en Firestore
   const productosCollection = collection(db, "productos");
@@ -67,6 +72,12 @@ const Productos = () => {
     fetchData();
   }, []);
 
+    // Calcular productos paginados
+    const paginatedProductos = productosFiltrados.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage
+    );
+    
   const handleSearchChange = (e) => {
     const text = e.target.value.toLowerCase();
     setSearchText(text);
@@ -196,11 +207,20 @@ const Productos = () => {
         />
 
       <TablaProductos
-        productos={productosFiltrados}
         openEditModal={openEditModal}
         openDeleteModal={openDeleteModal}
+        productos={paginatedProductos} // Pasar productos paginados
+        totalItems={productos.length} // Total de productos
+        itemsPerPage={itemsPerPage}   // Elementos por página
+        currentPage={currentPage}     // Página actual
+        setCurrentPage={setCurrentPage} // Método para cambiar página
       />
-      
+      <Paginacion
+        itemsPerPage={itemsPerPage}
+        totalItems={productosFiltrados.length}
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+      />
       <ModalRegistroProducto
         showModal={showModal}
         setShowModal={setShowModal}

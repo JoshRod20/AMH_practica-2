@@ -22,6 +22,7 @@
   import ModalEliminacionLibro from "../components/libros/ModalEliminacionLibro";
   import { useAuth } from "../database/authcontext";
   import CuadroBusquedas from "../components/busquedas/CuadroBusquedas";
+  import Paginacion from "../components/ordenamiento/Paginacion";
 
   const Libros = () => {
     const [libros, setLibros] = useState([]);
@@ -41,6 +42,9 @@
 
     const [librosFiltrados, setLibrosFiltrados] = useState([]);
     const [searchText, setSearchText] = useState("");
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5; // Número de productos por página
 
     const { isLoggedIn } = useAuth();
     const navigate = useNavigate();
@@ -68,6 +72,12 @@
         fetchData();
       }
     }, [isLoggedIn, navigate]);
+
+        // Calcular productos paginados
+        const paginatedLibros = librosFiltrados .slice(
+          (currentPage - 1) * itemsPerPage,
+          currentPage * itemsPerPage
+      );
 
     const handleSearchChange = (e) => {
       const text = e.target.value.toLowerCase();
@@ -230,10 +240,21 @@
           />
 
         <TablaLibros
-          libros={librosFiltrados}
           openEditModal={openEditModal}
           openDeleteModal={openDeleteModal}
+          libros={paginatedLibros} // Pasar productos paginados
+          totalItems={librosFiltrados.length} // Total de productos
+          itemsPerPage={itemsPerPage}   // Elementos por página
+          currentPage={currentPage}     // Página actual
+          setCurrentPage={setCurrentPage} // Método para cambiar página
         />
+        <Paginacion
+            itemsPerPage={itemsPerPage}
+            totalItems={librosFiltrados.length}
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+        />
+
         <ModalRegistroLibro
           showModal={showModal}
           setShowModal={setShowModal}
