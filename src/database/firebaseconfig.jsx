@@ -1,11 +1,10 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";  
 import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
+import { initializeFirestore, persistentLocalCache } from "firebase/firestore";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+
 const firebaseConfig = {
   apiKey: "AIzaSyBEz1HleGg7l_t3PnfV1I7_1ljv27saafY",
   authDomain: "practicaamh.firebaseapp.com",
@@ -16,11 +15,23 @@ const firebaseConfig = {
   measurementId: "G-WWJ7XNR7HZ"
 };
 
+
 // Initialize Firebase
 const appfirebase = initializeApp(firebaseConfig);
 
-//Inicializa Firestore
-const db = getFirestore(appfirebase);
+let db;
+try {
+  db = initializeFirestore(appfirebase, {
+    localCache: persistentLocalCache({
+      cacheSizeBytes: 100 * 1024 * 1024, // 100 MB (opcional, para limitar tamaño)
+    }),
+  });
+  console.log("Firestore inicializado con persistencia offline.");
+} catch (error) {
+  console.error("Error al inicializar Firestore con persistencia:", error);
+  // Fallback: inicializar sin persistencia si falla
+  db = initializeFirestore(appfirebase, {});
+}
 
 //Inicializa autenticación 
 const auth = getAuth(appfirebase);
