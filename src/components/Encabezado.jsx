@@ -124,6 +124,13 @@ import "../App.css";
                     ) : null}
                     <strong>Libros</strong>
                 </Nav.Link>
+                <Nav.Link
+                    onClick={() => handleNavigate("/clima")}
+                    className={isCollapsed ? "color-texto-marca" : "text-white"}
+                    >
+                    {isCollapsed ? <i className="bi-cloud-sun-fill me-2"></i> : null}
+                    <strong>Clima</strong>
+                </Nav.Link>
                 {isLoggedIn ? (
                     <>
                     <Nav.Link
