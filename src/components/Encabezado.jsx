@@ -131,6 +131,13 @@ import "../App.css";
                     {isCollapsed ? <i className="bi-cloud-sun-fill me-2"></i> : null}
                     <strong>Clima</strong>
                 </Nav.Link>
+                <Nav.Link
+                    onClick={() => handleNavigate("/pronunciacion")}
+                    className={isCollapsed ? "color-texto-marca" : "text-white"}
+                    >
+                    {isCollapsed ? <i className="bi-cloud-sun-fill me-2"></i> : null}
+                    <strong>Pronunciación</strong>
+                </Nav.Link>
                 {isLoggedIn ? (
                     <>
                     <Nav.Link
