@@ -10,6 +10,7 @@ import Catalogo from "./views/Catalogo";
 import Libros from "./views/Libros";
 import Clima from "./views/Clima";
 import PalabraCard from "./views/Pronunciacion";
+import Estadisticas from "./views/Estadisticas"; // Importa el componente Estadisticas.jsx
 
 import './App.css'
 
@@ -29,6 +30,7 @@ function App() {
               <Route path="/libros" element={<ProtectedRoute element={<Libros />} />}/>
               <Route path="/clima" element={<ProtectedRoute element={<Clima />} />}/>
               <Route path="/pronunciacion" element={<ProtectedRoute element={<PalabraCard />} />}/>
+              <Route path="/estadisticas" element={<ProtectedRoute element={<Estadisticas/>} />}/>
             </Routes>
           </main>
       </Router>
