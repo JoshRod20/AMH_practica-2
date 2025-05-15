@@ -104,6 +104,8 @@ const Productos = () => {
       }
     });
 
+
+
     return () => {
       unsubscribeProductos();
       unsubscribeCategorias();
@@ -351,6 +353,20 @@ const Productos = () => {
     setShowDeleteModal(true);
   };
 
+          // Método para copiar datos al portapapeles
+          const handleCopy = (producto) => {
+            const rowData = `Nombre: ${producto.nombre}\nPrecio: C$${producto.precio}\nCategoría: ${producto.categoria}`;
+  
+            navigator.clipboard
+              .writeText(rowData)
+              .then(() => {
+                console.log("Datos de la fila copiados al portapapeles:\n" + rowData);
+              })
+              .catch((err) => {
+                console.error("Error al copiar al portapapeles:", err);
+              });
+          };
+
   // Renderizado del componente
   return (
     <Container className="mt-5">
@@ -373,6 +389,7 @@ const Productos = () => {
         itemsPerPage={itemsPerPage}   // Elementos por página
         currentPage={currentPage}     // Página actual
         setCurrentPage={setCurrentPage} // Método para cambiar página
+        handleCopy={handleCopy}
       />
       <Paginacion
         itemsPerPage={itemsPerPage}

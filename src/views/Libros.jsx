@@ -23,6 +23,7 @@
   import { useAuth } from "../database/authcontext";
   import CuadroBusquedas from "../components/busquedas/CuadroBusquedas";
   import Paginacion from "../components/ordenamiento/Paginacion";
+  import ModalQR from "../components/qr/ModalQR";
 
   const Libros = () => {
     const [libros, setLibros] = useState([]);
@@ -46,6 +47,9 @@
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5; // Número de productos por página
 
+    const [showQRModal, setShowQRModal] = useState(false);
+    const [selectedUrl, setSelectedUrl] = useState(null); // Nuevo estado para el libro seleccionado en el QR
+
     const { isLoggedIn } = useAuth();
     const navigate = useNavigate();
 
@@ -63,6 +67,16 @@
         console.error("Error al obtener datos:", error);
         setError("Error al cargar los datos. Intenta de nuevo.");
       }
+    };
+
+    const openQRModal = (url) => {
+      setSelectedUrl(url);
+      setShowQRModal(true);
+    };
+
+    const handleCloseQRModal = () => {
+      setShowQRModal(false);
+      setSelectedUrl(null);
     };
 
     useEffect(() => {
@@ -247,6 +261,7 @@
           itemsPerPage={itemsPerPage}   // Elementos por página
           currentPage={currentPage}     // Página actual
           setCurrentPage={setCurrentPage} // Método para cambiar página
+          openQRModal={openQRModal}
         />
         <Paginacion
             itemsPerPage={itemsPerPage}
@@ -275,6 +290,11 @@
           showDeleteModal={showDeleteModal}
           setShowDeleteModal={setShowDeleteModal}
           handleDeleteLibro={handleDeleteLibro}
+        />
+        <ModalQR
+          show={showQRModal}
+          handleClose={handleCloseQRModal}
+          qrUrl={selectedUrl}
         />
       </Container>
     );

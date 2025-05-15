@@ -1,8 +1,9 @@
 import React from "react";
 import { Table, Button } from "react-bootstrap";
 import "bootstrap-icons/font/bootstrap-icons.css";
+import ModalQR from "../qr/ModalQR";
 
-const TablaLibros = ({ libros, openEditModal, openDeleteModal }) => {
+const TablaLibros = ({ libros, openEditModal, openDeleteModal, openQRModal}) => {
   return (
     <Table striped bordered hover responsive>
       <thead>
@@ -30,6 +31,13 @@ const TablaLibros = ({ libros, openEditModal, openDeleteModal }) => {
                   Ver PDF
                 </a>
               )}
+              <Button 
+                variant="outline-danger"
+                className="ml-1"
+                size="sm"onClick={() => openQRModal(libro.pdfUrl)}
+                >
+                <i className="bi bi-qr-code"></i>
+              </Button>
             </td>
             <td>
               <Button
@@ -45,6 +53,8 @@ const TablaLibros = ({ libros, openEditModal, openDeleteModal }) => {
                 size="sm"
                 onClick={() => openDeleteModal(libro)}
               >
+              </Button>
+              <Button >
                 <i className="bi bi-trash"></i>
               </Button>
             </td>
