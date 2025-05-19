@@ -1,6 +1,5 @@
-// Importaciones
 import React, { useState, useEffect } from "react";
-import { Container, Button } from "react-bootstrap";
+import { Container, Button, Col } from "react-bootstrap"; // Añadido Col
 import { db } from "../database/firebaseconfig";
 import {
   collection,
@@ -8,7 +7,7 @@ import {
   updateDoc,
   deleteDoc,
   doc,
-  onSnapshot
+  onSnapshot,
 } from "firebase/firestore";
 
 // Importaciones de componentes personalizados
@@ -18,6 +17,7 @@ import ModalEdicionCategoria from "../components/categorias/ModalEdicionCategori
 import ModalEliminacionCategoria from "../components/categorias/ModalEliminacionCategoria";
 import CuadroBusquedas from "../components/busquedas/CuadroBusquedas";
 import Paginacion from "../components/ordenamiento/Paginacion";
+import ChatIA from "../components/chat/ChatIA";
 
 const Categorias = () => {
   // Estados para manejo de datos
@@ -33,8 +33,9 @@ const Categorias = () => {
   const [categoriaAEliminar, setCategoriaAEliminar] = useState(null);
   const [categoriasFiltradas, setCategoriasFiltradas] = useState([]);
   const [searchText, setSearchText] = useState("");
-
+  const [showChatModal, setShowChatModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [error, setError] = useState(null); // Estado para manejar errores
   const itemsPerPage = 5; // Número de productos por página
 
   // Referencia a la colección de categorías en Firestore
@@ -45,13 +46,14 @@ const Categorias = () => {
   useEffect(() => {
     const handleOnline = () => {
       setIsOffline(false);
+      setError(null); // Limpiar error al volver a estar online
     };
     const handleOffline = () => {
       setIsOffline(true);
     };
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
-    setIsOffline(!navigator.onLine);
+
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
@@ -69,6 +71,7 @@ const Categorias = () => {
         }));
         setCategorias(fetchedCategorias);
         setCategoriasFiltradas(fetchedCategorias);
+        setError(null); // Limpiar error si la carga es exitosa
         console.log("Categorías cargadas desde Firestore:", fetchedCategorias);
         if (isOffline) {
           console.log("Offline: Mostrando datos desde la caché local.");
@@ -79,7 +82,7 @@ const Categorias = () => {
         if (isOffline) {
           console.log("Offline: Mostrando datos desde la caché local.");
         } else {
-          alert("Error al cargar las categorías: " + error.message);
+          setError("Error al cargar las categorías: " + error.message);
         }
       }
     );
@@ -93,10 +96,12 @@ const Categorias = () => {
   }, []);
 
   // Calcular productos paginados
-  const paginatedCategorias = categoriasFiltradas.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const paginatedCategorias = categoriasFiltradas.length
+    ? categoriasFiltradas.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+      )
+    : [];
 
   const handleSearchChange = (e) => {
     const text = e.target.value.toLowerCase();
@@ -109,6 +114,7 @@ const Categorias = () => {
     );
 
     setCategoriasFiltradas(filtradas);
+    setCurrentPage(1); // Resetear página al buscar
   };
 
   // Manejador de cambios en inputs del formulario de nueva categoría
@@ -137,13 +143,19 @@ const Categorias = () => {
       return;
     }
 
+    // Validación adicional: longitud mínima
+    if (nuevaCategoria.nombre.length < 3) {
+      alert("El nombre de la categoría debe tener al menos 3 caracteres.");
+      return;
+    }
+
     // Cerrar modal
     setShowModal(false);
-  
+
     // Crear ID temporal para offline y objeto de categoría
     const tempId = `temp_${Date.now()}`;
     const categoriaConId = { ...nuevaCategoria, id: tempId };
-  
+
     try {
       // Actualizar estado local para reflejar la nueva categoría
       setCategorias((prev) => [...prev, categoriaConId]);
@@ -151,19 +163,19 @@ const Categorias = () => {
 
       // Limpiar campos del formulario
       setNuevaCategoria({ nombre: "", descripcion: "" });
-  
+
       // Intentar guardar en Firestore
       await addDoc(categoriasCollection, nuevaCategoria);
-  
+
       // Mensaje según estado de conexión
       if (isOffline) {
-        console.log("Categoría agregada localmente (sin conexión).");
+        alert("Sin conexión: Categoría almacenada localmente. Se sincronizará cuando haya internet.");
       } else {
         console.log("Categoría agregada exitosamente en la nube.");
       }
     } catch (error) {
       console.error("Error al agregar la categoría:", error);
-  
+
       // Manejar error según estado de conexión
       if (isOffline) {
         console.log("Offline: Categoría almacenada localmente.");
@@ -183,6 +195,12 @@ const Categorias = () => {
       return;
     }
 
+    // Validación adicional: longitud mínima
+    if (categoriaEditada.nombre.length < 3) {
+      alert("El nombre de la categoría debe tener al menos 3 caracteres.");
+      return;
+    }
+
     setShowEditModal(false);
 
     const categoriaRef = doc(db, "categorias", categoriaEditada.id);
@@ -193,8 +211,6 @@ const Categorias = () => {
         nombre: categoriaEditada.nombre,
         descripcion: categoriaEditada.descripcion,
       });
-
-      console.log("Red desconectada:", isOffline);
 
       if (isOffline) {
         // Actualizar estado local inmediatamente si no hay conexión
@@ -208,16 +224,11 @@ const Categorias = () => {
             cat.id === categoriaEditada.id ? { ...categoriaEditada } : cat
           )
         );
-        console.log("Categoría actualizada localmente (sin conexión).");
-        alert(
-          "Sin conexión: Categoría actualizada localmente. Se sincronizará cuando haya internet."
-        );
+        alert("Sin conexión: Categoría actualizada localmente. Se sincronizará cuando haya internet.");
       } else {
-        // Si hay conexión, confirmar éxito en la nube
         console.log("Categoría actualizada exitosamente en la nube.");
       }
     } catch (error) {
-      // Manejar errores inesperados (no relacionados con la red)
       console.error("Error al actualizar la categoría:", error);
       setCategorias((prev) =>
         prev.map((cat) =>
@@ -236,28 +247,30 @@ const Categorias = () => {
   // Función para eliminar una categoría (DELETE)
   const handleDeleteCategoria = async () => {
     if (!categoriaAEliminar) return;
-  
+
     // Cerrar modal
     setShowDeleteModal(false);
-  
+
     try {
       // Actualizar estado local para reflejar la eliminación
       setCategorias((prev) => prev.filter((cat) => cat.id !== categoriaAEliminar.id));
-      setCategoriasFiltradas((prev) => prev.filter((cat) => cat.id !== categoriaAEliminar.id));
-  
+      setCategoriasFiltradas((prev) =>
+        prev.filter((cat) => cat.id !== categoriaAEliminar.id)
+      );
+
       // Intentar eliminar en Firestore
       const categoriaRef = doc(db, "categorias", categoriaAEliminar.id);
       await deleteDoc(categoriaRef);
-  
+
       // Mensaje según estado de conexión
       if (isOffline) {
-        console.log("Categoría eliminada localmente (sin conexión).");
+        alert("Sin conexión: Categoría eliminada localmente. Se sincronizará cuando haya internet.");
       } else {
         console.log("Categoría eliminada exitosamente en la nube.");
       }
     } catch (error) {
       console.error("Error al eliminar la categoría:", error);
-  
+
       // Manejar error según estado de conexión
       if (isOffline) {
         console.log("Offline: Eliminación almacenada localmente.");
@@ -287,9 +300,20 @@ const Categorias = () => {
     <Container className="mt-5">
       <br />
       <h4>Gestión de Categorías</h4>
+      {error && <div className="alert alert-danger">{error}</div>}
       <Button className="mb-3" onClick={() => setShowModal(true)}>
         Agregar categoría
       </Button>
+
+      <Col lg={3} md={4} sm={4} xs={5}>
+        <Button
+          className="mb-3"
+          onClick={() => setShowChatModal(true)}
+          style={{ width: "100%" }}
+        >
+          Chat IA
+        </Button>
+      </Col>
 
       <CuadroBusquedas
         searchText={searchText}
@@ -331,6 +355,7 @@ const Categorias = () => {
         setShowDeleteModal={setShowDeleteModal}
         handleDeleteCategoria={handleDeleteCategoria}
       />
+      <ChatIA showChatModal={showChatModal} setShowChatModal={setShowChatModal} />
     </Container>
   );
 };
