@@ -13,19 +13,17 @@ import {
 import { db } from "../../database/firebaseconfig";
 import { Button, Form, ListGroup, Spinner, Modal } from "react-bootstrap";
 
-const ChatIA = ({ showChatModal, setShowChatModal }) => {
-  // State variables
+const ChatIA = ({ showChatModal, setShowChatModal }) =>{
+
   const [mensaje, setMensaje] = useState("");
   const [mensajes, setMensajes] = useState([]);
   const [cargando, setCargando] = useState(false);
   const [intencion, setIntencion] = useState(null);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(null);
 
-  // Firebase collection references
-  const chatCollection = collection(db, "chat");
+    const chatCollection = collection(db, "chat");
   const categoriasCollection = collection(db, "categorias");
 
-  // Load messages in real-time from Firebase
   useEffect(() => {
     const q = query(chatCollection, orderBy("timestamp", "asc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -39,13 +37,226 @@ const ChatIA = ({ showChatModal, setShowChatModal }) => {
     return () => unsubscribe();
   }, []);
 
-  // Function to fetch categories from Firebase
-  const obtenerCategorias = async () => {
+ const obtenerCategorias = async () => {
     const snapshot = await getDocs(categoriasCollection);
     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   };
 
-  // Function to obtain IA response from Gemini API
+  const enviarMensaje = async () => {
+  if (!mensaje.trim()) return;
+
+  const nuevoMensaje = {
+    texto: mensaje,
+    emisor: "usuario",
+    timestamp: new Date(),
+  };
+
+  setCargando(true);
+  setMensaje("");
+
+  try {
+    await addDoc(chatCollection, nuevoMensaje);
+    const respuestaIA = await obtenerRespuestaIA(mensaje);
+
+    const categorias = await obtenerCategorias();
+
+    if (respuestaIA.intencion === "listar") {
+      if (categorias.length === 0) {
+        await addDoc(chatCollection, {
+          texto: "No hay categorías registradas.",
+          emisor: "ia",
+          timestamp: new Date(),
+        });
+      } else {
+        const lista = categorias.map((cat, i) => `${i + 1}. ${cat.nombre}: ${cat.descripcion}`).join("\n");
+        await addDoc(chatCollection, {
+          texto: `Categorías disponibles:\n${lista}`,
+          emisor: "ia",
+          timestamp: new Date(),
+        });
+      }
+    }
+
+    if (respuestaIA.intencion === "crear" && !intencion) {
+      const datos = respuestaIA.datos;
+      if (datos.nombre && datos.descripcion) {
+        await addDoc(categoriasCollection, datos);
+        await addDoc(chatCollection, {
+          texto: `Categoría "${datos.nombre}" registrada con éxito.`,
+          emisor: "ia",
+          timestamp: new Date(),
+        });
+      } else {
+        await addDoc(chatCollection, {
+          texto: "No se pudo registrar la categoría. Faltan datos válidos.",
+          emisor: "ia",
+          timestamp: new Date(),
+        });
+      }
+    }
+
+    if (respuestaIA.intencion === "eliminar") {
+      if (categorias.length === 0) {
+        await addDoc(chatCollection, {
+          texto: "No hay categorías registradas para eliminar.",
+          emisor: "ia",
+          timestamp: new Date(),
+        });
+        setIntencion(null);
+      } else if (respuestaIA.seleccion) {
+        const encontrada = categorias.find(
+          (cat, i) =>
+            cat.nombre.toLowerCase() === respuestaIA.seleccion.toLowerCase() ||
+            parseInt(respuestaIA.seleccion) === i + 1
+        );
+        if (encontrada) {
+          await deleteDoc(doc(db, "categorias", encontrada.id));
+          await addDoc(chatCollection, {
+            texto: `Categoría "${encontrada.nombre}" eliminada con éxito.`,
+            emisor: "ia",
+            timestamp: new Date(),
+          });
+          setIntencion(null);
+        } else {
+          await addDoc(chatCollection, {
+            texto: "No se encontró la categoría especificada.",
+            emisor: "ia",
+            timestamp: new Date(),
+          });
+        }
+      } else {
+        setIntencion("eliminar");
+        const lista = categorias.map((cat, i) => `${i + 1}. ${cat.nombre}: ${cat.descripcion}`).join("\n");
+        await addDoc(chatCollection, {
+          texto: `Selecciona una categoría para eliminar:\n${lista}`,
+          emisor: "ia",
+          timestamp: new Date(),
+        });
+      }
+    }
+
+    if (intencion === "eliminar" && respuestaIA.intencion === "seleccionar_categoria") {
+      const encontrada = categorias.find(
+        (cat, i) =>
+          cat.nombre.toLowerCase() === mensaje.toLowerCase() || parseInt(mensaje) === i + 1
+      );
+      if (encontrada) {
+        await deleteDoc(doc(db, "categorias", encontrada.id));
+        await addDoc(chatCollection, {
+          texto: `Categoría "${encontrada.nombre}" eliminada con éxito.`,
+          emisor: "ia",
+          timestamp: new Date(),
+        });
+        setIntencion(null);
+      } else {
+        await addDoc(chatCollection, {
+          texto: "Selección inválida. Intenta con un número o nombre válido.",
+          emisor: "ia",
+          timestamp: new Date(),
+        });
+      }
+    }
+
+    if (respuestaIA.intencion === "actualizar") {
+      if (categorias.length === 0) {
+        await addDoc(chatCollection, {
+          texto: "No hay categorías para actualizar.",
+          emisor: "ia",
+          timestamp: new Date(),
+        });
+        setIntencion(null);
+      } else if (respuestaIA.seleccion) {
+        const encontrada = categorias.find(
+          (cat, i) =>
+            cat.nombre.toLowerCase() === respuestaIA.seleccion.toLowerCase() ||
+            parseInt(respuestaIA.seleccion) === i + 1
+        );
+        if (encontrada) {
+          setCategoriaSeleccionada(encontrada);
+          setIntencion("actualizar");
+          await addDoc(chatCollection, {
+            texto: `Seleccionaste "${encontrada.nombre}". Proporciona nuevos datos.`,
+            emisor: "ia",
+            timestamp: new Date(),
+          });
+        } else {
+          await addDoc(chatCollection, {
+            texto: "Categoría no encontrada.",
+            emisor: "ia",
+            timestamp: new Date(),
+          });
+        }
+      } else {
+        setIntencion("actualizar");
+        const lista = categorias.map((cat, i) => `${i + 1}. ${cat.nombre}: ${cat.descripcion}`).join("\n");
+        await addDoc(chatCollection, {
+          texto: `Selecciona una categoría para actualizar:\n${lista}`,
+          emisor: "ia",
+          timestamp: new Date(),
+        });
+      }
+    }
+
+    if (intencion === "actualizar" && respuestaIA.intencion === "seleccionar_categoria") {
+      const encontrada = categorias.find(
+        (cat, i) =>
+          cat.nombre.toLowerCase() === mensaje.toLowerCase() || parseInt(mensaje) === i + 1
+      );
+      if (encontrada) {
+        setCategoriaSeleccionada(encontrada);
+        await addDoc(chatCollection, {
+          texto: `Seleccionaste "${encontrada.nombre}". Proporciona los nuevos datos.`,
+          emisor: "ia",
+          timestamp: new Date(),
+        });
+      } else {
+        await addDoc(chatCollection, {
+          texto: "Selección inválida.",
+          emisor: "ia",
+          timestamp: new Date(),
+        });
+      }
+    }
+
+    if (
+      intencion === "actualizar" &&
+      categoriaSeleccionada &&
+      respuestaIA.intencion === "actualizar_datos"
+    ) {
+      const datos = respuestaIA.datos;
+      const ref = doc(db, "categorias", categoriaSeleccionada.id);
+      await updateDoc(ref, {
+        nombre: datos.nombre || categoriaSeleccionada.nombre,
+        descripcion: datos.descripcion || categoriaSeleccionada.descripcion,
+      });
+      await addDoc(chatCollection, {
+        texto: `Categoría "${categoriaSeleccionada.nombre}" actualizada con éxito.`,
+        emisor: "ia",
+        timestamp: new Date(),
+      });
+      setIntencion(null);
+      setCategoriaSeleccionada(null);
+    }
+
+    if (respuestaIA.intencion === "desconocida") {
+      await addDoc(chatCollection, {
+        texto: "No entendí tu solicitud. Usa crear, listar, actualizar o eliminar.",
+        emisor: "ia",
+        timestamp: new Date(),
+      });
+    }
+  } catch (error) {
+    console.error("Error al enviar mensaje:", error);
+    await addDoc(chatCollection, {
+      texto: "Ocurrió un error. Intenta más tarde.",
+      emisor: "ia",
+      timestamp: new Date(),
+    });
+  } finally {
+    setCargando(false);
+  }
+};
+
   const obtenerRespuestaIA = async (promptUsuario) => {
     const apiKey = import.meta.env.VITE_GOOGLE_AI_API_KEY;
     const prompt = `
@@ -110,224 +321,11 @@ const ChatIA = ({ showChatModal, setShowChatModal }) => {
     }
   };
 
-  // Main function to send message and process IA response
-  const enviarMensaje = async () => {
-    if (!mensaje.trim()) return;
 
-    const nuevoMensaje = {
-      texto: mensaje,
-      emisor: "usuario",
-      timestamp: new Date(),
-    };
 
-    setCargando(true);
-    setMensaje("");
 
-    try {
-      await addDoc(chatCollection, nuevoMensaje);
-      const respuestaIA = await obtenerRespuestaIA(mensaje);
 
-      const categorias = await obtenerCategorias();
-
-      if (respuestaIA.intencion === "listar") {
-        if (categorias.length === 0) {
-          await addDoc(chatCollection, {
-            texto: "No hay categorías registradas.",
-            emisor: "ia",
-            timestamp: new Date(),
-          });
-        } else {
-          const lista = categorias.map((cat, i) => `${i + 1}. ${cat.nombre}: ${cat.descripcion}`).join("\n");
-          await addDoc(chatCollection, {
-            texto: `Categorías disponibles:\n${lista}`,
-            emisor: "ia",
-            timestamp: new Date(),
-          });
-        }
-      }
-
-      if (respuestaIA.intencion === "crear" && !intencion) {
-        const datos = respuestaIA.datos;
-        if (datos.nombre && datos.descripcion) {
-          await addDoc(categoriasCollection, datos);
-          await addDoc(chatCollection, {
-            texto: `Categoría "${datos.nombre}" registrada con éxito.`,
-            emisor: "ia",
-            timestamp: new Date(),
-          });
-        } else {
-          await addDoc(chatCollection, {
-            texto: "No se pudo registrar la categoría. Faltan datos válidos.",
-            emisor: "ia",
-            timestamp: new Date(),
-          });
-        }
-      }
-
-      if (respuestaIA.intencion === "eliminar") {
-        if (categorias.length === 0) {
-          await addDoc(chatCollection, {
-            texto: "No hay categorías registradas para eliminar.",
-            emisor: "ia",
-            timestamp: new Date(),
-          });
-          setIntencion(null);
-        } else if (respuestaIA.seleccion) {
-          const encontrada = categorias.find(
-            (cat, i) =>
-              cat.nombre.toLowerCase() === respuestaIA.seleccion.toLowerCase() ||
-              parseInt(respuestaIA.seleccion) === i + 1
-          );
-          if (encontrada) {
-            await deleteDoc(doc(db, "categorias", encontrada.id));
-            await addDoc(chatCollection, {
-              texto: `Categoría "${encontrada.nombre}" eliminada con éxito.`,
-              emisor: "ia",
-              timestamp: new Date(),
-            });
-            setIntencion(null);
-          } else {
-            await addDoc(chatCollection, {
-              texto: "No se encontró la categoría especificada.",
-              emisor: "ia",
-              timestamp: new Date(),
-            });
-          }
-        } else {
-          setIntencion("eliminar");
-          const lista = categorias.map((cat, i) => `${i + 1}. ${cat.nombre}: ${cat.descripcion}`).join("\n");
-          await addDoc(chatCollection, {
-            texto: `Selecciona una categoría para eliminar:\n${lista}`,
-            emisor: "ia",
-            timestamp: new Date(),
-          });
-        }
-      }
-
-      if (intencion === "eliminar" && respuestaIA.intencion === "seleccionar_categoria") {
-        const encontrada = categorias.find(
-          (cat, i) =>
-            cat.nombre.toLowerCase() === mensaje.toLowerCase() || parseInt(mensaje) === i + 1
-        );
-        if (encontrada) {
-          await deleteDoc(doc(db, "categorias", encontrada.id));
-          await addDoc(chatCollection, {
-            texto: `Categoría "${encontrada.nombre}" eliminada con éxito.`,
-            emisor: "ia",
-            timestamp: new Date(),
-          });
-          setIntencion(null);
-        } else {
-          await addDoc(chatCollection, {
-            texto: "Selección inválida. Intenta con un número o nombre válido.",
-            emisor: "ia",
-            timestamp: new Date(),
-          });
-        }
-      }
-
-      if (respuestaIA.intencion === "actualizar") {
-        if (categorias.length === 0) {
-          await addDoc(chatCollection, {
-            texto: "No hay categorías para actualizar.",
-            emisor: "ia",
-            timestamp: new Date(),
-          });
-          setIntencion(null);
-        } else if (respuestaIA.seleccion) {
-          const encontrada = categorias.find(
-            (cat, i) =>
-              cat.nombre.toLowerCase() === respuestaIA.seleccion.toLowerCase() ||
-              parseInt(respuestaIA.seleccion) === i + 1
-          );
-          if (encontrada) {
-            setCategoriaSeleccionada(encontrada);
-            setIntencion("actualizar");
-            await addDoc(chatCollection, {
-              texto: `Seleccionaste "${encontrada.nombre}". Proporciona nuevos datos.`,
-              emisor: "ia",
-              timestamp: new Date(),
-            });
-          } else {
-            await addDoc(chatCollection, {
-              texto: "Categoría no encontrada.",
-              emisor: "ia",
-              timestamp: new Date(),
-            });
-          }
-        } else {
-          setIntencion("actualizar");
-          const lista = categorias.map((cat, i) => `${i + 1}. ${cat.nombre}: ${cat.descripcion}`).join("\n");
-          await addDoc(chatCollection, {
-            texto: `Selecciona una categoría para actualizar:\n${lista}`,
-            emisor: "ia",
-            timestamp: new Date(),
-          });
-        }
-      }
-
-      if (intencion === "actualizar" && respuestaIA.intencion === "seleccionar_categoria") {
-        const encontrada = categorias.find(
-          (cat, i) =>
-            cat.nombre.toLowerCase() === mensaje.toLowerCase() || parseInt(mensaje) === i + 1
-        );
-        if (encontrada) {
-          setCategoriaSeleccionada(encontrada);
-          await addDoc(chatCollection, {
-            texto: `Seleccionaste "${encontrada.nombre}". Proporciona los nuevos datos.`,
-            emisor: "ia",
-            timestamp: new Date(),
-          });
-        } else {
-          await addDoc(chatCollection, {
-            texto: "Selección inválida.",
-            emisor: "ia",
-            timestamp: new Date(),
-          });
-        }
-      }
-
-      if (
-        intencion === "actualizar" &&
-        categoriaSeleccionada &&
-        respuestaIA.intencion === "actualizar_datos"
-      ) {
-        const datos = respuestaIA.datos;
-        const ref = doc(db, "categorias", categoriaSeleccionada.id);
-        await updateDoc(ref, {
-          nombre: datos.nombre || categoriaSeleccionada.nombre,
-          descripcion: datos.descripcion || categoriaSeleccionada.descripcion,
-        });
-        await addDoc(chatCollection, {
-          texto: `Categoría "${categoriaSeleccionada.nombre}" actualizada con éxito.`,
-          emisor: "ia",
-          timestamp: new Date(),
-        });
-        setIntencion(null);
-        setCategoriaSeleccionada(null);
-      }
-
-      if (respuestaIA.intencion === "desconocida") {
-        await addDoc(chatCollection, {
-          texto: "No entendí tu solicitud. Usa crear, listar, actualizar o eliminar.",
-          emisor: "ia",
-          timestamp: new Date(),
-        });
-      }
-    } catch (error) {
-      console.error("Error al enviar mensaje:", error);
-      await addDoc(chatCollection, {
-        texto: "Ocurrió un error. Intenta más tarde.",
-        emisor: "ia",
-        timestamp: new Date(),
-      });
-    } finally {
-      setCargando(false);
-    }
-  };
-
-  // Render the modal component with chat
-  return (
+   return (
     <Modal show={showChatModal} onHide={() => setShowChatModal(false)} size="lg">
       <Modal.Header closeButton>
         <Modal.Title>Chat con IA</Modal.Title>
