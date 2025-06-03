@@ -1,32 +1,33 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Container from "react-bootstrap/Container";
-import Nav from "react-bootstrap/Nav";
-import Navbar from "react-bootstrap/Navbar";
-import Offcanvas from "react-bootstrap/Offcanvas";
-import { useAuth } from "../database/authcontext";
-import "bootstrap-icons/font/bootstrap-icons.css";
-import logo from "../assets/ferreteria_selva_logo.png";
-import "../App.css";
+    import React, { useState } from "react";
+    import { useNavigate, useLocation } from "react-router-dom"; // Added useLocation
+    import Container from "react-bootstrap/Container";
+    import Nav from "react-bootstrap/Nav";
+    import Navbar from "react-bootstrap/Navbar";
+    import Offcanvas from "react-bootstrap/Offcanvas";
+    import NavDropdown from "react-bootstrap/NavDropdown"; // Fixed import
+    import { useAuth } from "../database/authcontext";
+    import "bootstrap-icons/font/bootstrap-icons.css";
+    import logo from "../assets/ferreteria_selva_logo.png";
+    import { useTranslation } from "react-i18next";
+    import "../App.css";
 
     const Encabezado = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const { isLoggedIn, logout } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation(); // Added to use location.pathname
+    const { t, i18n } = useTranslation();
+
+    const cambiarIdioma = (lang) => {
+        i18n.changeLanguage(lang);
+    };
 
     const handleLogout = async () => {
         try {
-        // Cerrar el offcanvas antes de proceder
         setIsCollapsed(false);
-
-        // Eliminar variables almacenadas en localStorage
         localStorage.removeItem("adminEmail");
         localStorage.removeItem("adminPassword");
-
-        // Cerrar sesión
         await logout();
-
-        // Redirigir al inicio
         navigate("/");
         } catch (error) {
         console.error("Error al cerrar sesión:", error);
@@ -35,7 +36,6 @@ import "../App.css";
 
     const handleToggle = () => setIsCollapsed(!isCollapsed);
 
-    // Funciones de navegación
     const handleNavigate = (path) => {
         navigate(path);
         setIsCollapsed(false);
@@ -56,25 +56,25 @@ import "../App.css";
                 height="30"
                 className="d-inline-block align-top"
             />{" "}
-            <strong>Ferreteria</strong>
+            <strong>{t("brand.name")}</strong>
             </Navbar.Brand>
             <Navbar.Toggle
-            aria-controls="offcanvasNavbar-expand-sm"
+            aria-controls="offcanvasNavbar-expand-md" // Fixed to match expand="md"
             onClick={handleToggle}
             />
             <Navbar.Offcanvas
-            id="offcanvasNavbar-expand-sm"
-            aria-labelledby="offcanvasNavbarLabel-expand-sm"
+            id="offcanvasNavbar-expand-md" // Fixed to match expand="md"
+            aria-labelledby="offcanvasNavbarLabel-expand-md"
             placement="end"
             show={isCollapsed}
             onHide={() => setIsCollapsed(false)}
             >
             <Offcanvas.Header closeButton>
                 <Offcanvas.Title
-                id="offcanvasNavbarLabel-expand-sm"
+                id="offcanvasNavbarLabel-expand-md"
                 className={isCollapsed ? "color-texto-marca" : "text-white"}
                 >
-                Menú
+                {t("menu.title")}
                 </Offcanvas.Title>
             </Offcanvas.Header>
             <Offcanvas.Body>
@@ -83,90 +83,112 @@ import "../App.css";
                     onClick={() => handleNavigate("/inicio")}
                     className={isCollapsed ? "color-texto-marca" : "text-white"}
                 >
-                    {isCollapsed ? (
-                    <i className="bi-house-door-fill me-2"></i>
-                    ) : null}
-                    <strong>Inicio</strong>
+                    {isCollapsed && <i className="bi-house-door-fill me-2"></i>}
+                    <strong>{t('menu.inicio')}</strong>
                 </Nav.Link>
                 <Nav.Link
                     onClick={() => handleNavigate("/categorias")}
                     className={isCollapsed ? "color-texto-marca" : "text-white"}
                 >
-                    {isCollapsed ? (
-                    <i className="bi-house-door-fill me-2"></i>
-                    ) : null}
-                    <strong>Categorías</strong>
+                    {isCollapsed && <i className="bi-tags-fill me-2"></i>}
+                    <strong>{t('menu.categorias')}</strong>
                 </Nav.Link>
                 <Nav.Link
                     onClick={() => handleNavigate("/productos")}
                     className={isCollapsed ? "color-texto-marca" : "text-white"}
                 >
-                    {isCollapsed ? (
-                    <i className="bi-house-door-fill me-2"></i>
-                    ) : null}
-                    <strong>Productos</strong>
+                    {isCollapsed && <i className="bi-box-fill me-2"></i>}
+                    <strong>{t('menu.productos')}</strong>
                 </Nav.Link>
                 <Nav.Link
                     onClick={() => handleNavigate("/catalogo")}
                     className={isCollapsed ? "color-texto-marca" : "text-white"}
                 >
-                    {isCollapsed ? (
-                    <i className="bi-house-door-fill me-2"></i>
-                    ) : null}
-                    <strong>Catálogo</strong>
+                    {isCollapsed && <i className="bi-book-fill me-2"></i>}
+                    <strong>{t('menu.catalogo')}</strong>
                 </Nav.Link>
                 <Nav.Link
                     onClick={() => handleNavigate("/libros")}
                     className={isCollapsed ? "color-texto-marca" : "text-white"}
                 >
-                    {isCollapsed ? (
-                    <i className="bi-house-door-fill me-2"></i>
-                    ) : null}
-                    <strong>Libros</strong>
+                    {isCollapsed && <i className="bi-book-fill me-2"></i>}
+                    <strong>{t('menu.libros')}</strong>
                 </Nav.Link>
                 <Nav.Link
                     onClick={() => handleNavigate("/clima")}
                     className={isCollapsed ? "color-texto-marca" : "text-white"}
-                    >
-                    {isCollapsed ? <i className="bi-cloud-sun-fill me-2"></i> : null}
-                    <strong>Clima</strong>
+                >
+                    {isCollapsed && <i className="bi-cloud-sun-fill me-2"></i>}
+                    <strong>{t('menu.clima')}</strong>
                 </Nav.Link>
                 <Nav.Link
-                    onClick={() => handleNavigate("/pronunciacion")}
+                    onClick={() => handleNavigate("/palabracard")}
                     className={isCollapsed ? "color-texto-marca" : "text-white"}
-                    >
-                    {isCollapsed ? <i className="bi-cloud-sun-fill me-2"></i> : null}
-                    <strong>Pronunciación</strong>
+                >
+                    {isCollapsed && <i className="bi-mic-fill me-2"></i>}
+                    <strong>{t('menu.pronunciacion')}</strong>
                 </Nav.Link>
                 <Nav.Link
-                    onClick={() => handleNavigate("/estadisticas")}
+                    onClick={() => handleNavigate("/graficos")}
                     className={isCollapsed ? "color-texto-marca" : "text-white"}
-                    >
-                    {isCollapsed ? <i className="bi-cloud-sun-fill me-2"></i> : null}
-                    <strong>Estadísticas</strong>
+                >
+                    {isCollapsed && <i className="bi-bar-chart-fill me-2"></i>}
+                    <strong>{t('menu.estadisticas')}</strong>
+                </Nav.Link>
+                <Nav.Link
+                    onClick={() => handleNavigate("/empleados")}
+                    className={isCollapsed ? "color-texto-marca" : "text-white"}
+                >
+                    {isCollapsed && <i className="bi-bar-chart-fill me-2"></i>}
+                    <strong>{t('menu.empleados')}</strong>
                 </Nav.Link>
                 {isLoggedIn ? (
-                    <>
                     <Nav.Link
-                        onClick={handleLogout}
-                        className={isCollapsed ? "text-black" : "text-white"}
+                    onClick={handleLogout}
+                    className={isCollapsed ? "text-black" : "text-white"}
                     >
-                        Cerrar Sesión
+                    {isCollapsed && <i className="bi-box-arrow-right me-2"></i>}
+                    {t("menu.cerrarSesion")}
                     </Nav.Link>
-                    </>
                 ) : (
                     location.pathname === "/" && (
                     <Nav.Link
                         onClick={() => handleNavigate("/")}
                         className={isCollapsed ? "text-black" : "text-white"}
                     >
-                        Iniciar Sesión
+                        {isCollapsed && (
+                        <i className="bi-box-arrow-in-left me-2"></i>
+                        )}
+                        {t("menu.iniciarSesion")}
                     </Nav.Link>
                     )
                 )}
                 </Nav>
             </Offcanvas.Body>
             </Navbar.Offcanvas>
+    <NavDropdown
+    title={
+        <span>
+        <i className="bi-translate me-2"></i>
+        {isCollapsed && <span>{t('menu.idioma')}</span>}
+        </span>
+    }
+    id="basic-nav-dropdown"
+    className={isCollapsed ? "color-texto-marca" : "texto-blanco"}
+    >
+    <NavDropdown.Item
+        onClick={() => cambiarIdioma('es')}
+        className="text-black"
+    >
+        <strong>{t('menu.español')}</strong>
+    </NavDropdown.Item>
+    <NavDropdown.Item
+        onClick={() => cambiarIdioma('en')}
+        className="text-black"
+    >
+        <strong>{t('menu.ingles')}</strong>
+    </NavDropdown.Item>
+    </NavDropdown>
         </Container>
         </Navbar>
     );

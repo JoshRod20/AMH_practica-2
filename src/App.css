@@ -11,4 +11,7 @@
       color: #1e3d87 !important;
   }
 
-  
+  .texto-blanco .dropdown-toggle {
+  color: white !important;
+  font-weight: bold;
+}
