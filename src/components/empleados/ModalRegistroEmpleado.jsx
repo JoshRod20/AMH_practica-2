@@ -14,7 +14,7 @@ const ModalRegistroEmpleado = ({
     const letrasEspaciosRegex = /^[A-Za-z\s]+$/;
     const telefonoRegex = /^\d{4}-\d{4}$/;
     const cedulaRegex = /^\d{3}-\d{6}-\d{4}[A-Za-z]?$/;
-    const contraseñaRegex = /^(?=.[a-z])(?=.[A-Z])(?=.\d)(?=.[@$!%?&])[A-Za-z\d@$!%?&]{8,}$/;
+    const contraseñaRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%?&])[A-Za-z\d@$!%?&]{8,}$/;
     const contraseñasComunes = ["123456", "password", "admin123", "contraseña"];
 
     const [nombreValido, setNombreValido] = useState(false);
@@ -105,15 +105,15 @@ const ModalRegistroEmpleado = ({
         if (name === "telefono") {
             const charCode = e.which ? e.which : e.keyCode;
             if (
-            (charCode < 48 || charCode > 57) &&
-            charCode !== 45 &&
-            charCode !== 8 &&
-            charCode !== 46
+                (charCode < 48 || charCode > 57) &&
+                charCode !== 45 &&
+                charCode !== 8 &&
+                charCode !== 46
             ) {
-            e.preventDefault();
+                e.preventDefault();
             }
             if (e.key === "e" || e.key === "E") {
-            e.preventDefault();
+                e.preventDefault();
             }
         }
     };
@@ -133,177 +133,186 @@ const ModalRegistroEmpleado = ({
     };
 
     useEffect(() => {
-    if (showModal) {
-        setNombreValido(validarNombre(nuevoEmpleado.nombre) === "");
-        setApellidoValido(validarApellido(nuevoEmpleado.apellido) === "");
-        setCorreoValido(validarCorreo(nuevoEmpleado.correo) === "");
-        setTelefonoValido(validarTelefono(nuevoEmpleado.telefono) === "");
-        setCedulaValida(validarCedula(nuevoEmpleado.cedula) === "");
-        setContraseñaValida(validarContraseña(nuevoEmpleado.contraseña) === "");
-        setConfirmarContraseñaValida(
-        validarConfirmarContraseña(nuevoEmpleado.confirmarContraseña, nuevoEmpleado.contraseña) === ""
-        );
-        setFechaNacimientoValida(validarFechaNacimiento(nuevoEmpleado.fechaNacimiento) === "");
-        setFotoValida(validarArchivo(nuevoEmpleado.foto) === "");
-    }
+        if (showModal) {
+            setNombreValido(validarNombre(nuevoEmpleado.nombre) === "");
+            setApellidoValido(validarApellido(nuevoEmpleado.apellido) === "");
+            setCorreoValido(validarCorreo(nuevoEmpleado.correo) === "");
+            setTelefonoValido(validarTelefono(nuevoEmpleado.telefono) === "");
+            setCedulaValida(validarCedula(nuevoEmpleado.cedula) === "");
+            setContraseñaValida(validarContraseña(nuevoEmpleado.contraseña) === "");
+            setConfirmarContraseñaValida(
+                validarConfirmarContraseña(nuevoEmpleado.confirmarContraseña, nuevoEmpleado.contraseña) === ""
+            );
+            setFechaNacimientoValida(validarFechaNacimiento(nuevoEmpleado.fechaNacimiento) === "");
+            setFotoValida(validarArchivo(nuevoEmpleado.foto) === "");
+        } else {
+            setNombreValido(false);
+            setApellidoValido(false);
+            setCorreoValido(false);
+            setTelefonoValido(false);
+            setCedulaValida(false);
+            setContraseñaValida(false);
+            setConfirmarContraseñaValida(false);
+            setFechaNacimientoValida(false);
+            setFotoValida(false);
+        }
     }, [showModal, nuevoEmpleado]);
 
-        return (
+    return (
         <Modal show={showModal} onHide={() => setShowModal(false)}>
-        <Modal.Header closeButton>
-            <Modal.Title>Agregar Empleado</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-            <Form>
-            <Form.Group className="mb-3">
-                <Form.Label>Nombre</Form.Label>
-                <Form.Control
-                type="text"
-                name="nombre"
-                value={nuevoEmpleado.nombre}
-                onChange={handleInputChange}
-                placeholder="Ingresa el nombre"
-                isInvalid={validarNombre(nuevoEmpleado.nombre) !== ""}
-                />
-                <Form.Control.Feedback type="invalid">
-                {validarNombre(nuevoEmpleado.nombre)}
-                </Form.Control.Feedback>
-            </Form.Group>
+            <Modal.Header closeButton>
+                <Modal.Title>Agregar Empleado</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <Form>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Nombre</Form.Label>
+                        <Form.Control
+                            type="text"
+                            name="nombre"
+                            value={nuevoEmpleado.nombre}
+                            onChange={handleInputChange}
+                            placeholder="Ingresa el nombre"
+                            isInvalid={validarNombre(nuevoEmpleado.nombre) !== ""}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {validarNombre(nuevoEmpleado.nombre)}
+                        </Form.Control.Feedback>
+                    </Form.Group>
 
-            <Form.Group className="mb-3">
-                <Form.Label>Apellido</Form.Label>
-                <Form.Control
-                type="text"
-                name="apellido"
-                value={nuevoEmpleado.apellido}
-                onChange={handleInputChange}
-                placeholder="Ingresa el apellido"
-                isInvalid={validarApellido(nuevoEmpleado.apellido) !== ""}
-                />
-                <Form.Control.Feedback type="invalid">
-                {validarApellido(nuevoEmpleado.apellido)}
-                </Form.Control.Feedback>
-            </Form.Group>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Apellido</Form.Label>
+                        <Form.Control
+                            type="text"
+                            name="apellido"
+                            value={nuevoEmpleado.apellido}
+                            onChange={handleInputChange}
+                            placeholder="Ingresa el apellido"
+                            isInvalid={validarApellido(nuevoEmpleado.apellido) !== ""}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {validarApellido(nuevoEmpleado.apellido)}
+                        </Form.Control.Feedback>
+                    </Form.Group>
 
-            <Form.Group className="mb-3">
-                <Form.Label>Correo Electrónico</Form.Label>
-                <Form.Control
-                type="email"
-                name="correo"
-                value={nuevoEmpleado.correo}
-                onChange={handleInputChange}
-                placeholder="Ingresa el correo"
-                isInvalid={validarCorreo(nuevoEmpleado.correo) !== ""}
-                />
-                <Form.Control.Feedback type="invalid">
-                {validarCorreo(nuevoEmpleado.correo)}
-                </Form.Control.Feedback>
-            </Form.Group>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Correo Electrónico</Form.Label>
+                        <Form.Control
+                            type="email"
+                            name="correo"
+                            value={nuevoEmpleado.correo}
+                            onChange={handleInputChange}
+                            placeholder="Ingresa el correo"
+                            isInvalid={validarCorreo(nuevoEmpleado.correo) !== ""}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {validarCorreo(nuevoEmpleado.correo)}
+                        </Form.Control.Feedback>
+                    </Form.Group>
 
-            <Form.Group className="mb-3">
-                <Form.Label>Teléfono (xxxx-xxxx)</Form.Label>
-                <Form.Control
-                type="text"
-                name="telefono"
-                value={nuevoEmpleado.telefono}
-                onChange={handleInputChange}
-                onKeyPress={(e) => handleKeyPress(e, "telefono")}
-                placeholder="Ejemplo: 1234-5678"
-                isInvalid={validarTelefono(nuevoEmpleado.telefono) !== ""}
-                />
-                <Form.Control.Feedback type="invalid">
-                {validarTelefono(nuevoEmpleado.telefono)}
-                </Form.Control.Feedback>
-            </Form.Group>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Teléfono (xxxx-xxxx)</Form.Label>
+                        <Form.Control
+                            type="text"
+                            name="telefono"
+                            value={nuevoEmpleado.telefono}
+                            onChange={handleInputChange}
+                            onKeyPress={(e) => handleKeyPress(e, "telefono")}
+                            placeholder="Ejemplo: 1234-5678"
+                            isInvalid={validarTelefono(nuevoEmpleado.telefono) !== ""}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {validarTelefono(nuevoEmpleado.telefono)}
+                        </Form.Control.Feedback>
+                    </Form.Group>
 
-            <Form.Group className="mb-3">
-                <Form.Label>Cédula (xxx-xxxxxx-xxxxX)</Form.Label>
-                <Form.Control
-                type="text"
-                name="cedula"
-                value={nuevoEmpleado.cedula}
-                onChange={handleInputChange}
-                placeholder="Ejemplo: 121-300897-0004Y"
-                isInvalid={validarCedula(nuevoEmpleado.cedula) !== ""}
-                />
-                <Form.Control.Feedback type="invalid">
-                {validarCedula(nuevoEmpleado.cedula)}
-                </Form.Control.Feedback>
-            </Form.Group>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Cédula (xxx-xxxxxx-xxxxX)</Form.Label>
+                        <Form.Control
+                            type="text"
+                            name="cedula"
+                            value={nuevoEmpleado.cedula}
+                            onChange={handleInputChange}
+                            placeholder="Ejemplo: 121-300897-0004Y"
+                            isInvalid={validarCedula(nuevoEmpleado.cedula) !== ""}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {validarCedula(nuevoEmpleado.cedula)}
+                        </Form.Control.Feedback>
+                    </Form.Group>
 
-            <Form.Group className="mb-3">
-                <Form.Label>Contraseña</Form.Label>
-                <Form.Control
-                type="password"
-                name="contraseña"
-                value={nuevoEmpleado.contraseña}
-                onChange={handleInputChange}
-                placeholder="Ingresa la contraseña"
-                isInvalid={validarContraseña(nuevoEmpleado.contraseña) !== ""}
-                />
-                <Form.Control.Feedback type="invalid">
-                {validarContraseña(nuevoEmpleado.contraseña)}
-                </Form.Control.Feedback>
-            </Form.Group>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Contraseña</Form.Label>
+                        <Form.Control
+                            type="password"
+                            name="contraseña"
+                            value={nuevoEmpleado.contraseña}
+                            onChange={handleInputChange}
+                            placeholder="Ingresa la contraseña"
+                            isInvalid={validarContraseña(nuevoEmpleado.contraseña) !== ""}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {validarContraseña(nuevoEmpleado.contraseña)}
+                        </Form.Control.Feedback>
+                    </Form.Group>
 
-            <Form.Group className="mb-3">
-                <Form.Label>Confirmar Contraseña</Form.Label>
-                <Form.Control
-                type="password"
-                name="confirmarContraseña"
-                value={nuevoEmpleado.confirmarContraseña}
-                onChange={handleInputChange}
-                placeholder="Confirma la contraseña"
-                isInvalid={validarConfirmarContraseña(nuevoEmpleado.confirmarContraseña, nuevoEmpleado.contraseña) !== ""}
-                />
-                <Form.Control.Feedback type="invalid">
-                {validarConfirmarContraseña(nuevoEmpleado.confirmarContraseña, nuevoEmpleado.contraseña)}
-                </Form.Control.Feedback>
-            </Form.Group>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Confirmar Contraseña</Form.Label>
+                        <Form.Control
+                            type="password"
+                            name="confirmarContraseña"
+                            value={nuevoEmpleado.confirmarContraseña}
+                            onChange={handleInputChange}
+                            placeholder="Confirma la contraseña"
+                            isInvalid={validarConfirmarContraseña(nuevoEmpleado.confirmarContraseña, nuevoEmpleado.contraseña) !== ""}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {validarConfirmarContraseña(nuevoEmpleado.confirmarContraseña, nuevoEmpleado.contraseña)}
+                        </Form.Control.Feedback>
+                    </Form.Group>
 
-            <Form.Group className="mb-3">
-                <Form.Label>Fecha de Nacimiento</Form.Label>
-                <Form.Control
-                type="date"
-                name="fechaNacimiento"
-                value={nuevoEmpleado.fechaNacimiento || ""}
-                onChange={handleInputChange}
-                isInvalid={validarFechaNacimiento(nuevoEmpleado.fechaNacimiento) !== ""}
-                />
-                <Form.Control.Feedback type="invalid">
-                {validarFechaNacimiento(nuevoEmpleado.fechaNacimiento)}
-                </Form.Control.Feedback>
-            </Form.Group>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Fecha de Nacimiento</Form.Label>
+                        <Form.Control
+                            type="date"
+                            name="fechaNacimiento"
+                            value={nuevoEmpleado.fechaNacimiento || ""}
+                            onChange={handleInputChange}
+                            isInvalid={validarFechaNacimiento(nuevoEmpleado.fechaNacimiento) !== ""}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {validarFechaNacimiento(nuevoEmpleado.fechaNacimiento)}
+                        </Form.Control.Feedback>
+                    </Form.Group>
 
-            <Form.Group className="mb-3">
-                <Form.Label>Foto del Empleado</Form.Label>
-                <Form.Control
-                type="file"
-                name="foto"
-                onChange={handleFileChange}
-                isInvalid={validarArchivo(nuevoEmpleado.foto) !== ""}
-                />
-                <Form.Control.Feedback type="invalid">
-                {validarArchivo(nuevoEmpleado.foto)}
-                </Form.Control.Feedback>
-            </Form.Group>
-            </Form>
-        </Modal.Body>
-        <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowModal(false)}>
-            Cancelar
-            </Button>
-            <Button
-            variant="primary"
-            onClick={handleAddEmpleado}
-            disabled={!isFormValid()}
-            >
-            Guardar
-            </Button>
-        </Modal.Footer>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Foto del Empleado</Form.Label>
+                        <Form.Control
+                            type="file"
+                            name="foto"
+                            onChange={handleFileChange}
+                            isInvalid={validarArchivo(nuevoEmpleado.foto) !== ""}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {validarArchivo(nuevoEmpleado.foto)}
+                        </Form.Control.Feedback>
+                    </Form.Group>
+                </Form>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button variant="secondary" onClick={() => setShowModal(false)}>
+                    Cancelar
+                </Button>
+                <Button
+                    variant="primary"
+                    onClick={handleAddEmpleado}
+                    disabled={!isFormValid()}
+                >
+                    Guardar
+                </Button>
+            </Modal.Footer>
         </Modal>
     );
-
-}
+};
 
 export default ModalRegistroEmpleado;
